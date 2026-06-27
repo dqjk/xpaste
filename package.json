@@ -1,0 +1,54 @@
+{
+  "name": "xpaste",
+  "version": "0.1.0",
+  "description": "A lightweight browser-based service for sharing text, images, videos, and files across devices on the same network.",
+  "type": "module",
+  "bin": {
+    "xpaste": "./dist/server/app.js"
+  },
+  "license": "MIT",
+  "keywords": [
+    "clipboard",
+    "file-sharing",
+    "local-network",
+    "cross-device",
+    "sse"
+  ],
+  "files": [
+    "dist",
+    "static"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "preferGlobal": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dqjk/xpaste.git"
+  },
+  "homepage": "https://github.com/dqjk/xpaste#readme",
+  "bugs": {
+    "url": "https://github.com/dqjk/xpaste/issues"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean && node --eval \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "dev": "tsx watch src/server/app.ts",
+    "start": "node dist/server/app.js",
+    "prepack": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.7.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

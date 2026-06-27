@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="982" viewBox="0 0 1512 982">
+  <image href="xpaste-impl-desktop-light.png" width="1512" height="982" />
+  <g transform="translate(1305 39)">
+    <rect width="119" height="32" rx="8" fill="#f8fafc" stroke="#dbe3ee" />
+    <g transform="translate(10 8)" fill="none" stroke="#334155" stroke-width="1.4">
+      <path d="M0 0h5v5H0zM10 0h5v5h-5zM0 10h5v5H0zM10 10h2v2h-2zM14 10h1v3h-3M10 14h3v1h-3z" />
+    </g>
+    <text x="34" y="20" fill="#334155" font-family="Segoe UI, PingFang SC, sans-serif" font-size="12" font-weight="600">Connect device</text>
+  </g>
+</svg>
