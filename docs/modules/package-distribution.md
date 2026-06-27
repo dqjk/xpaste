@@ -1,5 +1,7 @@
 # Package Distribution
 
+[简体中文](./package-distribution.zh-CN.md)
+
 ## Responsibility
 
 The npm package is the installation boundary for xpaste. It contains the compiled server,

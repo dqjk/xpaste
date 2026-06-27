@@ -1,5 +1,7 @@
 # Server Module
 
+[简体中文](./server.zh-CN.md)
+
 ## Goal
 
 The server module hosts the browser app, tracks online devices, accepts shared content, and streams runtime changes through SSE.

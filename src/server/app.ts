@@ -11,6 +11,7 @@ import { registerStaticRoutes } from "./routes/static.js";
 import { DataService } from "./services/data-service.js";
 import { DeviceService } from "./services/device-service.js";
 import { SseService } from "./services/sse-service.js";
+import { isTransportPayloadTooLargeError, sendPayloadTooLarge } from "./utils/errors.js";
 
 const DEFAULT_PORT = 3000;
 const LISTEN_HOST = "0.0.0.0";
@@ -99,6 +100,11 @@ function createApplication(): express.Express {
    */
   application.use(
     (error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
+      if (isTransportPayloadTooLargeError(error)) {
+        sendPayloadTooLarge(response, "payload exceeds allowed limit");
+        return;
+      }
+
       console.error(error);
       response.status(500).json({ error: "internal server error" });
     }

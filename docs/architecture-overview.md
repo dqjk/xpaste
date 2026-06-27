@@ -1,5 +1,7 @@
 # Architecture Overview
 
+[简体中文](./architecture-overview.zh-CN.md)
+
 ## System Shape
 
 `xpaste` is a centralized browser/server application:

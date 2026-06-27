@@ -20,3 +20,16 @@ export function sendNotFound(response: Response, message: string): void {
 export function sendPayloadTooLarge(response: Response, message: string): void {
   response.status(413).json({ error: message });
 }
+
+/**
+ * Detects request-parser limit failures without coupling the application boundary to parser classes.
+ */
+export function isTransportPayloadTooLargeError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const code = "code" in error ? error.code : undefined;
+  const type = "type" in error ? error.type : undefined;
+  return code === "LIMIT_FILE_SIZE" || type === "entity.too.large";
+}

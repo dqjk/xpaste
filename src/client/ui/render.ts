@@ -1,38 +1,45 @@
+import type { Translator } from "../i18n/locale.js";
 import type { ApplicationViewModel, DataItemCardViewModel } from "../state/view-model.js";
 
 /**
  * Re-renders the whole application view from a plain view model.
  */
-export function renderApplication(rootElement: HTMLElement, viewModel: ApplicationViewModel): void {
-  rootElement.replaceChildren(buildLayout(viewModel));
+export function renderApplication(
+  rootElement: HTMLElement,
+  viewModel: ApplicationViewModel,
+  translate: Translator
+): void {
+  rootElement.replaceChildren(buildLayout(viewModel, translate));
 }
 
 /**
  * Builds the responsive page shell from state-only data.
  */
-function buildLayout(viewModel: ApplicationViewModel): HTMLElement {
+function buildLayout(viewModel: ApplicationViewModel, translate: Translator): HTMLElement {
   const page = document.createElement("main");
   page.className = "page";
 
   const topBar = document.createElement("header");
   topBar.className = "top-bar";
-  topBar.append(buildBrandBlock(), buildSettingsButton());
+  topBar.append(buildBrandBlock(), buildSettingsButton(translate));
 
   const gridSection = document.createElement("section");
   gridSection.className = "items";
 
   const gridHeader = document.createElement("div");
   gridHeader.className = "items__header";
-  gridHeader.innerHTML = "<h2>DataItems</h2>";
+  const gridTitle = document.createElement("h2");
+  gridTitle.textContent = translate("items.heading");
+  gridHeader.appendChild(gridTitle);
 
   const itemGrid = document.createElement("div");
   itemGrid.className = "item-grid";
   for (const item of viewModel.items) {
-    itemGrid.appendChild(buildDataItemCard(item));
+    itemGrid.appendChild(buildDataItemCard(item, translate));
   }
   gridSection.append(gridHeader, itemGrid);
 
-  page.append(topBar, buildQuickShareBlock(), gridSection);
+  page.append(topBar, buildQuickShareBlock(translate), gridSection);
   return page;
 }
 
@@ -56,12 +63,12 @@ function buildBrandBlock(): HTMLElement {
  * Adds a single lightweight settings affordance in the top-right corner to match the
  * “use and leave” product direction.
  */
-function buildSettingsButton(): HTMLButtonElement {
+function buildSettingsButton(translate: Translator): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "icon-button";
-  button.setAttribute("aria-label", "Settings");
-  button.title = "Settings";
+  button.setAttribute("aria-label", translate("settings.label"));
+  button.title = translate("settings.label");
   button.append(buildActionIcon("settings"));
   return button;
 }
@@ -69,7 +76,7 @@ function buildSettingsButton(): HTMLButtonElement {
 /**
  * Builds a single content card with preview, source identity, and direct actions.
  */
-function buildDataItemCard(item: DataItemCardViewModel): HTMLElement {
+function buildDataItemCard(item: DataItemCardViewModel, translate: Translator): HTMLElement {
   const article = document.createElement("article");
   article.className = `data-item data-item--${item.kind}${item.available ? "" : " data-item--unavailable"}`;
 
@@ -109,24 +116,24 @@ function buildDataItemCard(item: DataItemCardViewModel): HTMLElement {
 
   const actions = document.createElement("div");
   actions.className = "data-item__actions";
-  for (const action of buildActionDefinitions(item)) {
+  for (const action of buildActionDefinitions(item, translate)) {
     actions.appendChild(buildCardActionButton(item, action));
   }
 
   const footer = document.createElement("footer");
   footer.className = "data-item__footer";
-  footer.append(buildSourceBadge(item), buildFooterMeta(item));
+  footer.append(buildSourceBadge(item), buildFooterMeta(item, translate));
 
   article.append(body, actions, footer);
   return article;
 }
 
-function buildActionDefinitions(item: DataItemCardViewModel): ActionDefinition[] {
+function buildActionDefinitions(item: DataItemCardViewModel, translate: Translator): ActionDefinition[] {
   if (item.kind === "text") {
     return [
       {
         name: "copy",
-        label: "Copy",
+        label: translate("action.copy"),
         primary: true,
         disabled: false
       }
@@ -138,13 +145,13 @@ function buildActionDefinitions(item: DataItemCardViewModel): ActionDefinition[]
     return [
       {
         name: "preview",
-        label: "Preview",
+        label: translate("action.preview"),
         primary: true,
         disabled: unavailable
       },
       {
         name: "save",
-        label: item.kind === "image" ? "Save" : "Save",
+        label: translate("action.save"),
         primary: false,
         disabled: unavailable
       }
@@ -154,13 +161,13 @@ function buildActionDefinitions(item: DataItemCardViewModel): ActionDefinition[]
   return [
     {
       name: "open",
-      label: "Open",
+      label: translate("action.open"),
       primary: true,
       disabled: unavailable
     },
     {
       name: "save",
-      label: "Save",
+      label: translate("action.save"),
       primary: false,
       disabled: unavailable
     }
@@ -226,7 +233,7 @@ function buildIcon(kind: DataItemCardViewModel["kind"], size: "small" | "large" 
   return wrapper;
 }
 
-function buildFooterMeta(item: DataItemCardViewModel): HTMLElement {
+function buildFooterMeta(item: DataItemCardViewModel, translate: Translator): HTMLElement {
   const meta = document.createElement("div");
   meta.className = "data-item__footer-meta";
   meta.appendChild(buildIcon(item.kind));
@@ -234,14 +241,14 @@ function buildFooterMeta(item: DataItemCardViewModel): HTMLElement {
   if (!item.inline) {
     const badge = document.createElement("span");
     badge.className = `availability-badge${item.available ? "" : " availability-badge--muted"}`;
-    badge.textContent = item.available ? "Available" : "Unavailable";
+    badge.textContent = item.available ? translate("status.available") : translate("status.unavailable");
     meta.appendChild(badge);
   }
 
   return meta;
 }
 
-function buildQuickShareBlock(): HTMLElement {
+function buildQuickShareBlock(translate: Translator): HTMLElement {
   const container = document.createElement("section");
   container.className = "quick-share";
 
@@ -253,12 +260,12 @@ function buildQuickShareBlock(): HTMLElement {
   input.dataset.role = "text-input";
   input.name = "text";
   input.type = "text";
-  input.placeholder = "Enter text to send...";
+  input.placeholder = translate("quick.inputPlaceholder");
 
   const submitButton = document.createElement("button");
   submitButton.type = "submit";
   submitButton.className = "button button--secondary";
-  submitButton.textContent = "Send";
+  submitButton.textContent = translate("quick.send");
 
   const pasteButton = document.createElement("button");
   pasteButton.type = "button";
@@ -267,7 +274,7 @@ function buildQuickShareBlock(): HTMLElement {
   pasteButton.append(buildActionIcon("paste"));
   const pasteLabel = document.createElement("span");
   pasteLabel.className = "button__label";
-  pasteLabel.textContent = "Paste from Clipboard";
+  pasteLabel.textContent = translate("quick.paste");
   pasteButton.appendChild(pasteLabel);
 
   const manualInput = document.createElement("div");
@@ -279,17 +286,17 @@ function buildQuickShareBlock(): HTMLElement {
   const actions = document.createElement("div");
   actions.className = "quick-share__actions";
   actions.append(
-    buildQuickShareButton("pick-file", "image", "Image", "image"),
-    buildQuickShareButton("pick-file", "album", "Album", "album"),
-    buildQuickShareButton("pick-file", "file", "File", "file"),
-    buildQuickShareButton("pick-file", "video", "Video", "video")
+    buildQuickShareButton("pick-file", "image", translate("quick.image"), "image"),
+    buildQuickShareButton("pick-file", "album", translate("quick.album"), "album"),
+    buildQuickShareButton("pick-file", "file", translate("quick.file"), "file"),
+    buildQuickShareButton("pick-file", "video", translate("quick.video"), "video")
   );
 
   const dropHint = document.createElement("div");
   dropHint.className = "quick-share__drop-hint";
   dropHint.append(buildActionIcon("drop"));
   const dropText = document.createElement("span");
-  dropText.textContent = "Drag and drop files, images, or videos anywhere to send";
+  dropText.textContent = translate("quick.dropHint");
   dropHint.appendChild(dropText);
 
   container.append(form, actions, dropHint, buildPickerInput("image", "image/*"), buildPickerInput("album", "image/*"), buildPickerInput("file"), buildPickerInput("video", "video/*"));

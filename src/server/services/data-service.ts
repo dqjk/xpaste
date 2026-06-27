@@ -6,8 +6,8 @@ import type { CreateTextDataRequest, SharedItemKind, SharedItemSummary } from ".
 
 const MAX_ITEMS_PER_DEVICE = 5;
 const INLINE_TEXT_LIMIT = 2048;
-const MAX_TEXT_BYTES = 256 * 1024;
-const MAX_BINARY_BYTES = 20 * 1024 * 1024;
+export const MAX_TEXT_BYTES = 256 * 1024;
+export const MAX_BINARY_BYTES = 20 * 1024 * 1024;
 
 type TextItem = {
   dataId: string;

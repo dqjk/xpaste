@@ -1,5 +1,7 @@
 # Server Architecture
 
+[简体中文](./README.zh-CN.md)
+
 The server is an Express application with three main responsibilities:
 
 - receive browser presence through SSE

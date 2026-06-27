@@ -1,11 +1,14 @@
 # Client Architecture
 
+[简体中文](./README.zh-CN.md)
+
 The client is a TypeScript browser application built on native ESM.
 
 The module split is intentional:
 
 - `api`: network requests
 - `app`: startup and browser integration
+- `i18n`: browser locale negotiation and typed translation catalogs
 - `state`: page state transitions
 - `ui`: DOM rendering
 

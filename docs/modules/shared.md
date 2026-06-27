@@ -1,5 +1,7 @@
 # Shared Module
 
+[简体中文](./shared.zh-CN.md)
+
 ## Goal
 
 The shared module defines the protocol contract between client and server.

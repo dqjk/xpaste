@@ -38,17 +38,22 @@
     "clean": "tsc -b --clean && node --eval \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsx watch src/server/app.ts",
     "start": "node dist/server/app.js",
+    "test": "npm run build && node --test tests/i18n.test.mjs tests/server.integration.test.mjs",
     "prepack": "npm run clean && npm run build"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "multer": "^2.0.2"
+    "express": "^5.2.1",
+    "multer": "^2.2.0"
+  },
+  "overrides": {
+    "path-to-regexp": "8.4.2",
+    "qs": "6.15.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.7.2",
-    "tsx": "^4.20.6",
+    "tsx": "^4.22.4",
     "typescript": "^5.9.3"
   }
 }

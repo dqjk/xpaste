@@ -3,12 +3,15 @@ import { postFileData, postTextData } from "./api/http-client.js";
 import { copyResourceText, copyText, openResourcePreview, saveResource } from "./api/resource-client.js";
 import { ensureDeviceIdCookie } from "./app/device-cookie.js";
 import { connectEventStream } from "./app/event-source.js";
+import { createTranslator, getBrowserLocale } from "./i18n/locale.js";
 import { ApplicationStore } from "./state/store.js";
 import { buildApplicationViewModel, type DataItemCardViewModel } from "./state/view-model.js";
 import { renderApplication } from "./ui/render.js";
 
 const applicationStore = new ApplicationStore();
 const dataItemsById = new Map<string, DataItemCardViewModel>();
+const locale = getBrowserLocale();
+const translate = createTranslator(locale);
 
 /**
  * Client bootstrap entry point.
@@ -17,6 +20,7 @@ const dataItemsById = new Map<string, DataItemCardViewModel>();
  * subscribe rendering, then open the SSE stream.
  */
 function main(): void {
+  document.documentElement.lang = locale;
   ensureDeviceIdCookie();
   const rootElement = requireRootElement();
   bindApplicationActions(rootElement);
@@ -29,7 +33,7 @@ function main(): void {
       dataItemsById.set(item.dataId, item);
     }
 
-    renderApplication(rootElement, viewModel);
+    renderApplication(rootElement, viewModel, translate);
   });
 
   connectEventStream((event) => {

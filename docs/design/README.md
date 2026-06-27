@@ -1,5 +1,7 @@
 # xpaste UI Design Draft
 
+[简体中文](./README.zh-CN.md)
+
 This folder stores the project-owned visual design baseline. Future UI work should use these assets as the reference instead of relying on external design tools.
 
 ## Current Draft
@@ -11,6 +13,11 @@ This folder stores the project-owned visual design baseline. Future UI work shou
 ### Theme And State
 
 - `xpaste-dark-mode-availability-draft.png`
+
+### Localization
+
+- `xpaste-locale-en-draft.svg`
+- `xpaste-locale-zh-cn-draft.svg`
 
 ### Components
 
@@ -51,6 +58,8 @@ The draft shows three responsive targets:
 - Light and dark color schemes must both be designed before implementation.
 - Desktop device connection uses a compact top-bar entry and an application-generated QR code.
 - Keep the closed entry and open modal as separate design drafts.
+- English and Simplified Chinese reuse the same responsive geometry; translated text must not introduce a separate layout.
+- Resolve the interface language from the browser on every page load; do not expose a manual language selector or persist a preference.
 
 ## Pending Design Review
 

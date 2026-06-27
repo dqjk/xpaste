@@ -4,14 +4,23 @@ import { join } from "node:path";
 import express, { type Express } from "express";
 import multer from "multer";
 import type { CreateTextDataRequest, DataCreatedEvent } from "../../shared/index.js";
-import { DataService, DataTooLargeError } from "../services/data-service.js";
+import {
+  DataService,
+  DataTooLargeError,
+  MAX_BINARY_BYTES,
+  MAX_TEXT_BYTES
+} from "../services/data-service.js";
 import { DeviceService } from "../services/device-service.js";
 import { SseService } from "../services/sse-service.js";
 import { getDeviceIdFromRequest } from "../utils/device-id.js";
 import { sendBadRequest, sendNotFound, sendPayloadTooLarge } from "../utils/errors.js";
 
 const upload = multer({
-  dest: join(tmpdir(), "xpaste-upload")
+  dest: join(tmpdir(), "xpaste-upload"),
+  limits: {
+    fileSize: MAX_BINARY_BYTES,
+    files: 1
+  }
 });
 
 type RegisterDataRoutesOptions = {
@@ -25,48 +34,53 @@ type RegisterDataRoutesOptions = {
  * Registers upload and resource-read endpoints for shared data.
  */
 export function registerDataRoutes(options: RegisterDataRoutesOptions): void {
-  options.app.post("/data", express.json(), upload.single("file"), async (request, response, next) => {
-    const deviceId = getDeviceIdFromRequest(request);
-    if (!deviceId) {
-      sendBadRequest(response, "deviceId cookie is required");
-      return;
-    }
-
-    if (!options.deviceService.hasDevice(deviceId)) {
-      sendNotFound(response, "device not found");
-      return;
-    }
-
-    try {
-      /**
-       * The request shape determines which creation path runs:
-       * JSON bodies become text items, multipart requests become binary items.
-       */
-      const summary = request.file
-        ? await options.dataService.createBinaryItem(deviceId, request.file)
-        : await options.dataService.createTextItem(deviceId, request.body as CreateTextDataRequest);
-
-      const event: DataCreatedEvent = {
-        type: "data-created",
-        deviceId,
-        data: summary
-      };
-
-      options.sseService.broadcast(event);
-      response.status(201).json({
-        ok: true,
-        deviceId,
-        data: summary
-      });
-    } catch (error) {
-      if (error instanceof DataTooLargeError) {
-        sendPayloadTooLarge(response, error.message);
+  options.app.post(
+    "/data",
+    express.json({ limit: MAX_TEXT_BYTES + 1024 }),
+    upload.single("file"),
+    async (request, response, next) => {
+      const deviceId = getDeviceIdFromRequest(request);
+      if (!deviceId) {
+        sendBadRequest(response, "deviceId cookie is required");
         return;
       }
 
-      next(error);
+      if (!options.deviceService.hasDevice(deviceId)) {
+        sendNotFound(response, "device not found");
+        return;
+      }
+
+      try {
+        /**
+         * The request shape determines which creation path runs:
+         * JSON bodies become text items, multipart requests become binary items.
+         */
+        const summary = request.file
+          ? await options.dataService.createBinaryItem(deviceId, request.file)
+          : await options.dataService.createTextItem(deviceId, request.body as CreateTextDataRequest);
+
+        const event: DataCreatedEvent = {
+          type: "data-created",
+          deviceId,
+          data: summary
+        };
+
+        options.sseService.broadcast(event);
+        response.status(201).json({
+          ok: true,
+          deviceId,
+          data: summary
+        });
+      } catch (error) {
+        if (error instanceof DataTooLargeError) {
+          sendPayloadTooLarge(response, error.message);
+          return;
+        }
+
+        next(error);
+      }
     }
-  });
+  );
 
   options.app.get("/data/:deviceId/:dataId", async (request, response, next) => {
     const resource = options.dataService.getResource(request.params.deviceId, request.params.dataId);
