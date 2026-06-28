@@ -38,7 +38,7 @@
     "clean": "tsc -b --clean && node --eval \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsx watch src/server/app.ts",
     "start": "node dist/server/app.js",
-    "test": "npm run build && node --test tests/i18n.test.mjs tests/server.integration.test.mjs",
+    "test": "npm run build && node --test tests/device-cookie.test.mjs tests/i18n.test.mjs tests/server.integration.test.mjs",
     "prepack": "npm run clean && npm run build"
   },
   "dependencies": {

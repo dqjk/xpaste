@@ -34,7 +34,35 @@ export async function saveResource(deviceId: string, dataId: string, fileName: s
  * Copies inline text to the local clipboard.
  */
 export async function copyText(text: string): Promise<void> {
-  await navigator.clipboard.writeText(text);
+  const clipboard = navigator.clipboard;
+  if (clipboard && typeof clipboard.writeText === "function") {
+    try {
+      await clipboard.writeText(text);
+      return;
+    } catch {
+      // Permission denial in a non-secure context falls through to selection-based copying.
+    }
+  }
+
+  copyTextWithSelection(text);
+}
+
+/**
+ * Uses the browser's selection command as the HTTP-compatible clipboard fallback.
+ */
+function copyTextWithSelection(text: string): void {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.readOnly = true;
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.select();
+  const copied = document.execCommand("copy");
+  textArea.remove();
+  if (!copied) {
+    throw new Error("clipboard copy is unavailable");
+  }
 }
 
 /**

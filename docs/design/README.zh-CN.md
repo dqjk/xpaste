@@ -34,6 +34,7 @@
 - `xpaste-impl-desktop-dark.png`
 - `xpaste-impl-tablet-dark.png`
 - `xpaste-impl-mobile-dark.png`
+- `xpaste-chrome-http-compatibility.png`
 
 设计稿包含三个响应式目标：
 

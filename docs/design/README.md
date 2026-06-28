@@ -34,6 +34,7 @@ This folder stores the project-owned visual design baseline. Future UI work shou
 - `xpaste-impl-desktop-dark.png`
 - `xpaste-impl-tablet-dark.png`
 - `xpaste-impl-mobile-dark.png`
+- `xpaste-chrome-http-compatibility.png`
 
 The draft shows three responsive targets:
 

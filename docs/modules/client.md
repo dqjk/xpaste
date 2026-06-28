@@ -39,3 +39,9 @@ The client negotiates a locale once during startup from the browser's ordered la
 preferences. Chinese language tags use the `zh-CN` catalog, supported English tags use `en`,
 and all other languages fall back to English. The resolved locale updates the document language
 and an immutable translator is passed into rendering; no locale preference is stored.
+
+## Browser Compatibility
+
+Device identity uses `Crypto.randomUUID()` when available and creates the same UUID v4 shape
+with `Crypto.getRandomValues()` on plain LAN HTTP. Clipboard actions detect secure-context APIs
+at runtime and fall back to manual paste or selection-based copy when those APIs are unavailable.

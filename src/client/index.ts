@@ -191,9 +191,15 @@ function bindWindowDropUpload(): void {
  * area is focused as a fallback so the user can paste manually.
  */
 async function uploadClipboardData(rootElement: HTMLElement): Promise<void> {
-  if (typeof navigator.clipboard.read === "function") {
+  const clipboard = navigator.clipboard;
+  if (!clipboard) {
+    focusTextInput(rootElement);
+    return;
+  }
+
+  if (typeof clipboard.read === "function") {
     try {
-      const clipboardItems = await navigator.clipboard.read();
+      const clipboardItems = await clipboard.read();
       for (const clipboardItem of clipboardItems) {
         for (const mimeType of clipboardItem.types) {
           if (mimeType === "text/plain") {
@@ -212,9 +218,9 @@ async function uploadClipboardData(rootElement: HTMLElement): Promise<void> {
     }
   }
 
-  if (typeof navigator.clipboard.readText === "function") {
+  if (typeof clipboard.readText === "function") {
     try {
-      const text = (await navigator.clipboard.readText()).trim();
+      const text = (await clipboard.readText()).trim();
       if (text) {
         await postTextData({ text });
         return;
