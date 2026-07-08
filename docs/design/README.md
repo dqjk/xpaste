@@ -1,79 +1,32 @@
-# xpaste UI Design Draft
+# xpaste UI Design Baseline
 
 [简体中文](./README.zh-CN.md)
 
-This folder stores the project-owned visual design baseline. Future UI work should use these assets as the reference instead of relying on external design tools.
+This directory contains only the current UI design baseline. Each design is a standalone PNG with no dependency on another draft or external design tool.
 
-## Current Draft
+## Current Designs
 
-### Page Layout
-
-- `xpaste-responsive-ui-draft.png`
-
-### Theme And State
-
-- `xpaste-dark-mode-availability-draft.png`
-
-### Localization
-
-- `xpaste-locale-en-draft.svg`
-- `xpaste-locale-zh-cn-draft.svg`
-
-### Components
-
-- `xpaste-dataitem-card-draft.png`
-- `xpaste-device-connect-entry-draft.svg`
-- `xpaste-device-connect-modal-draft.svg`
-
-## Verified Implementation Screenshots
-
-- `xpaste-desktop-verified.png`
-- `xpaste-tablet-verified.png`
-- `xpaste-mobile-verified.png`
-- `xpaste-impl-desktop-light.png`
-- `xpaste-impl-desktop-dark.png`
-- `xpaste-impl-tablet-dark.png`
-- `xpaste-impl-mobile-dark.png`
-- `xpaste-chrome-http-compatibility.png`
-
-The draft shows three responsive targets:
-
-- Desktop: compact Quick Share at the top, then a multi-column DataItem grid.
-- Tablet: same structure with fewer columns and wrapped Quick Share actions.
-- Mobile: one-column DataItem flow with a compact Quick Share area.
+- `xpaste-desktop-light.png`
+- `xpaste-desktop-dark.png`
+- `xpaste-tablet-light.png`
+- `xpaste-tablet-dark.png`
+- `xpaste-mobile-light.png`
+- `xpaste-mobile-dark.png`
 
 ## Design Rules
 
-- The UI is use-and-leave: users should focus on pasting or uploading content, then retrieving DataItems.
-- Do not add sidebars, menus, bottom tabs, search bars, avatars, floating add buttons, or layout switch controls.
-- Keep only a small settings button in the top-right.
-- Quick Share is paste-first. `Paste from Clipboard` is the primary action.
-- Text input is secondary and uses `Send`; there is no separate `Text` quick action.
-- Media actions are secondary: `Image`, `File`, `Video`, and `Album` on mobile.
-- DataItem cards prioritize content preview, then actions, then compact source info.
-- Card actions use `icon + text` across desktop, tablet, and mobile.
-- Non-inline resources such as files, images, and videos must expose availability in the card footer area, near the type icon and source metadata. The top area should stay focused on content.
-- Inline or immediate-consumption cards, such as text, do not show `Available` or `Unavailable`.
-- Unavailable non-inline cards are muted and actions are disabled.
-- Source info stays compact: device/OS icon, display name, and IP.
-- Light and dark color schemes must both be designed before implementation.
-- Desktop device connection uses a compact top-bar entry and an application-generated QR code.
-- Keep the closed entry and open modal as separate design drafts.
-- English and Simplified Chinese reuse the same responsive geometry; translated text must not introduce a separate layout.
-- Resolve the interface language from the browser on every page load; do not expose a manual language selector or persist a preference.
+- Quick Share is the first visible section. Do not add a toolbar, brand bar, settings button, sidebar, tab bar, search field, avatar, floating action button, or layout switcher.
+- Paste is the primary Quick Share action. Text input and media selection are secondary actions.
+- Desktop uses a fluid multi-column DataItem grid, tablet reduces the column count, and mobile uses a single column.
+- DataItem actions use an icon and label on every viewport.
+- Non-inline resources show availability on the title row, vertically aligned with the title and anchored to the right edge.
+- Long titles truncate before the availability badge; the badge never overlaps or pushes the title out of the card.
+- Inline text items do not show availability.
+- Unavailable non-inline cards are muted and their actions are disabled.
+- Device source information stays compact: platform/device icon, display name, and IP address.
+- Light and dark themes share the same geometry.
+- English and Simplified Chinese share the same responsive geometry. Locale follows browser language without a manual selector.
 
-## Pending Design Review
+## Workflow
 
-- `xpaste-dark-mode-availability-draft.png` proposes dark mode colors and moves availability state from the top-right of the card to the bottom-right footer area.
-- `xpaste-dataitem-card-draft.png` isolates DataItem card components. It intentionally excludes app chrome, phone frames, settings buttons, and page-level controls.
-- Implementation should wait until this design direction is confirmed.
-
-## Verification Target
-
-When implementing or tuning the real UI, verify at least:
-
-- Desktop width: multiple DataItem cards per row.
-- Tablet width: fewer DataItem cards per row.
-- Mobile width: single-column DataItem cards.
-- Quick Share remains compact and paste-first on all widths.
-- DataItem action buttons remain visible without overpowering card content.
+Update these designs and obtain confirmation before changing production UI code. After implementation, verify desktop, tablet, and mobile in a real browser and compare screenshots against this baseline.

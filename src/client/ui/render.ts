@@ -19,10 +19,6 @@ function buildLayout(viewModel: ApplicationViewModel, translate: Translator): HT
   const page = document.createElement("main");
   page.className = "page";
 
-  const topBar = document.createElement("header");
-  topBar.className = "top-bar";
-  topBar.append(buildBrandBlock(), buildSettingsButton(translate));
-
   const gridSection = document.createElement("section");
   gridSection.className = "items";
 
@@ -39,38 +35,30 @@ function buildLayout(viewModel: ApplicationViewModel, translate: Translator): HT
   }
   gridSection.append(gridHeader, itemGrid);
 
-  page.append(topBar, buildQuickShareBlock(translate), gridSection);
+  page.append(buildPageHeader(translate), buildQuickShareBlock(translate), gridSection);
   return page;
 }
 
 /**
- * Builds a minimal brand block so the page keeps a clear identity without consuming
- * vertical space that should belong to the DataItem content.
+ * Builds the lightweight page identity row without reintroducing a large toolbar.
  */
-function buildBrandBlock(): HTMLElement {
-  const brand = document.createElement("div");
-  brand.className = "top-bar__brand";
+function buildPageHeader(translate: Translator): HTMLElement {
+  const header = document.createElement("header");
+  header.className = "page-header";
 
   const wordmark = document.createElement("span");
-  wordmark.className = "top-bar__wordmark";
+  wordmark.className = "page-header__wordmark";
   wordmark.textContent = "xpaste";
 
-  brand.append(wordmark);
-  return brand;
-}
-
-/**
- * Adds a single lightweight settings affordance in the top-right corner to match the
- * “use and leave” product direction.
- */
-function buildSettingsButton(translate: Translator): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "icon-button";
+  button.className = "page-header__settings";
   button.setAttribute("aria-label", translate("settings.label"));
   button.title = translate("settings.label");
   button.append(buildActionIcon("settings"));
-  return button;
+
+  header.append(wordmark, button);
+  return header;
 }
 
 /**
@@ -85,17 +73,20 @@ function buildDataItemCard(item: DataItemCardViewModel, translate: Translator): 
 
   const summary = document.createElement("div");
   summary.className = "data-item__summary";
-  if (item.kind !== "text") {
-    summary.appendChild(buildIcon(item.kind, "large"));
-  }
 
   const summaryText = document.createElement("div");
   summaryText.className = "data-item__summary-text";
-  if (item.title) {
-    const title = document.createElement("h3");
-    title.textContent = item.title;
-    summaryText.appendChild(title);
+
+  const titleRow = document.createElement("div");
+  titleRow.className = "data-item__title-row";
+  const title = document.createElement("h3");
+  title.textContent = item.title || item.preview;
+  titleRow.appendChild(title);
+  if (!item.inline) {
+    titleRow.appendChild(buildAvailabilityBadge(item, translate));
   }
+  summaryText.appendChild(titleRow);
+
   const previewText = document.createElement("p");
   previewText.textContent = item.preview;
   summaryText.appendChild(previewText);
@@ -122,7 +113,7 @@ function buildDataItemCard(item: DataItemCardViewModel, translate: Translator): 
 
   const footer = document.createElement("footer");
   footer.className = "data-item__footer";
-  footer.append(buildSourceBadge(item), buildFooterMeta(item, translate));
+  footer.append(buildSourceBadge(item), buildFooterMeta(item));
 
   article.append(body, actions, footer);
   return article;
@@ -233,18 +224,17 @@ function buildIcon(kind: DataItemCardViewModel["kind"], size: "small" | "large" 
   return wrapper;
 }
 
-function buildFooterMeta(item: DataItemCardViewModel, translate: Translator): HTMLElement {
+function buildAvailabilityBadge(item: DataItemCardViewModel, translate: Translator): HTMLElement {
+  const badge = document.createElement("span");
+  badge.className = `availability-badge${item.available ? "" : " availability-badge--muted"}`;
+  badge.textContent = item.available ? translate("status.available") : translate("status.unavailable");
+  return badge;
+}
+
+function buildFooterMeta(item: DataItemCardViewModel): HTMLElement {
   const meta = document.createElement("div");
   meta.className = "data-item__footer-meta";
   meta.appendChild(buildIcon(item.kind));
-
-  if (!item.inline) {
-    const badge = document.createElement("span");
-    badge.className = `availability-badge${item.available ? "" : " availability-badge--muted"}`;
-    badge.textContent = item.available ? translate("status.available") : translate("status.unavailable");
-    meta.appendChild(badge);
-  }
-
   return meta;
 }
 
@@ -287,7 +277,6 @@ function buildQuickShareBlock(translate: Translator): HTMLElement {
   actions.className = "quick-share__actions";
   actions.append(
     buildQuickShareButton("pick-file", "image", translate("quick.image"), "image"),
-    buildQuickShareButton("pick-file", "album", translate("quick.album"), "album"),
     buildQuickShareButton("pick-file", "file", translate("quick.file"), "file"),
     buildQuickShareButton("pick-file", "video", translate("quick.video"), "video")
   );
@@ -299,7 +288,7 @@ function buildQuickShareBlock(translate: Translator): HTMLElement {
   dropText.textContent = translate("quick.dropHint");
   dropHint.appendChild(dropText);
 
-  container.append(form, actions, dropHint, buildPickerInput("image", "image/*"), buildPickerInput("album", "image/*"), buildPickerInput("file"), buildPickerInput("video", "video/*"));
+  container.append(form, actions, dropHint, buildPickerInput("image", "image/*"), buildPickerInput("file"), buildPickerInput("video", "video/*"));
 
   return container;
 }
@@ -365,7 +354,7 @@ function buildQuickShareIcon(kind: "text" | "image" | "album" | "file" | "video"
 }
 
 /**
- * Provides consistent iconography for card actions and the top-level settings affordance.
+ * Provides consistent iconography for card actions and the lightweight settings affordance.
  */
 function buildActionIcon(kind: "copy" | "preview" | "open" | "save" | "paste" | "settings" | "drop"): HTMLElement {
   const wrapper = document.createElement("span");
