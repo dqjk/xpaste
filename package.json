@@ -15,7 +15,7 @@
     "sse"
   ],
   "files": [
-    "dist",
+    "dist/**/*.js",
     "static"
   ],
   "engines": {
