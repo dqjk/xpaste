@@ -1,6 +1,6 @@
 {
   "name": "xpaste-server",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A lightweight browser-based service for sharing text, images, videos, and files across devices on the same network.",
   "type": "module",
   "bin": {
