@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { spawn, spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const applicationPath = fileURLToPath(new URL("../dist/server/app.js", import.meta.url));
+const packagePath = fileURLToPath(new URL("../package.json", import.meta.url));
+const packageVersion = JSON.parse(readFileSync(packagePath, "utf8")).version;
 
 function withDeadline(promise, label, milliseconds = 8_000) {
   const signal = AbortSignal.timeout(milliseconds);
@@ -165,7 +168,7 @@ test("CLI metadata and validation remain lightweight", () => {
 
   const version = spawnSync(process.execPath, [applicationPath, "--version"], { encoding: "utf8" });
   assert.equal(version.status, 0);
-  assert.equal(version.stdout.trim(), "0.1.0");
+  assert.equal(version.stdout.trim(), packageVersion);
 
   const invalid = spawnSync(process.execPath, [applicationPath, "--port", "70000"], { encoding: "utf8" });
   assert.equal(invalid.status, 1);

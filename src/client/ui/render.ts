@@ -10,6 +10,17 @@ export function renderApplication(
   translate: Translator
 ): void {
   rootElement.replaceChildren(buildLayout(viewModel, translate));
+  updateTextOverflowControls(rootElement);
+}
+
+/**
+ * Keeps text expansion controls synchronized with responsive card width changes.
+ */
+export function observeTextOverflow(rootElement: HTMLElement): void {
+  const observer = new ResizeObserver(() => {
+    updateTextOverflowControls(rootElement);
+  });
+  observer.observe(rootElement);
 }
 
 /**
@@ -35,14 +46,14 @@ function buildLayout(viewModel: ApplicationViewModel, translate: Translator): HT
   }
   gridSection.append(gridHeader, itemGrid);
 
-  page.append(buildPageHeader(translate), buildQuickShareBlock(translate), gridSection);
+  page.append(buildPageHeader(), buildQuickShareBlock(translate), gridSection);
   return page;
 }
 
 /**
- * Builds the lightweight page identity row without reintroducing a large toolbar.
+ * Builds the lightweight page identity row without controls or settings.
  */
-function buildPageHeader(translate: Translator): HTMLElement {
+function buildPageHeader(): HTMLElement {
   const header = document.createElement("header");
   header.className = "page-header";
 
@@ -50,14 +61,7 @@ function buildPageHeader(translate: Translator): HTMLElement {
   wordmark.className = "page-header__wordmark";
   wordmark.textContent = "xpaste";
 
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "page-header__settings";
-  button.setAttribute("aria-label", translate("settings.label"));
-  button.title = translate("settings.label");
-  button.append(buildActionIcon("settings"));
-
-  header.append(wordmark, button);
+  header.appendChild(wordmark);
   return header;
 }
 
@@ -77,31 +81,41 @@ function buildDataItemCard(item: DataItemCardViewModel, translate: Translator): 
   const summaryText = document.createElement("div");
   summaryText.className = "data-item__summary-text";
 
-  const titleRow = document.createElement("div");
-  titleRow.className = "data-item__title-row";
-  const title = document.createElement("h3");
-  title.textContent = item.title || item.preview;
-  titleRow.appendChild(title);
-  if (!item.inline) {
-    titleRow.appendChild(buildAvailabilityBadge(item, translate));
-  }
-  summaryText.appendChild(titleRow);
+  if (item.kind === "text" && item.inline) {
+    summaryText.appendChild(buildExpandableText(item, translate));
+  } else {
+    const titleRow = document.createElement("div");
+    titleRow.className = "data-item__title-row";
+    const title = document.createElement("h3");
+    title.textContent = item.title;
+    titleRow.append(title, buildAvailabilityBadge(item, translate));
 
-  const previewText = document.createElement("p");
-  previewText.textContent = item.preview;
-  summaryText.appendChild(previewText);
+    summaryText.appendChild(titleRow);
+    if (item.kind !== "file") {
+      const previewText = document.createElement("p");
+      previewText.textContent = item.preview;
+      summaryText.appendChild(previewText);
+    }
+  }
   summary.appendChild(summaryText);
   body.appendChild(summary);
 
-  if (item.kind === "image" || item.kind === "video") {
-    const preview = document.createElement("div");
+  if (item.kind === "image" || item.kind === "video" || item.kind === "file") {
+    const preview = buildResourceTrigger("open", item, translate);
     preview.className = `data-item__preview data-item__preview--${item.kind}`;
-    if (item.kind === "video") {
-      const play = document.createElement("span");
-      play.className = "data-item__play";
-      play.append(buildActionIcon("preview"));
-      preview.appendChild(play);
+    if (item.kind === "image" && item.available) {
+      preview.appendChild(buildImagePreview(item));
+    } else if (item.kind === "file") {
+      preview.appendChild(buildFilePreviewArtwork());
     }
+
+    const openLabel = document.createElement("span");
+    openLabel.className = "data-item__preview-open";
+    openLabel.append(buildActionIcon("open"));
+    const openText = document.createElement("span");
+    openText.textContent = translate("action.open");
+    openLabel.appendChild(openText);
+    preview.appendChild(openLabel);
     body.appendChild(preview);
   }
 
@@ -119,6 +133,98 @@ function buildDataItemCard(item: DataItemCardViewModel, translate: Translator): 
   return article;
 }
 
+/**
+ * Creates an accessible content-area trigger for resource previews and file opening.
+ */
+function buildResourceTrigger(
+  action: "open",
+  item: DataItemCardViewModel,
+  translate: Translator
+): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.action = action;
+  button.dataset.dataId = item.dataId;
+  button.disabled = !item.available;
+  button.setAttribute("aria-label", `${translate(`action.${action}`)} ${item.title}`);
+  return button;
+}
+
+/**
+ * Uses the shared image resource itself as the card thumbnail.
+ */
+function buildImagePreview(item: DataItemCardViewModel): HTMLImageElement {
+  const image = document.createElement("img");
+  image.className = "data-item__preview-image";
+  image.src = buildResourcePath(item);
+  image.alt = "";
+  image.loading = "lazy";
+  image.addEventListener(
+    "error",
+    () => {
+      image.remove();
+    },
+    { once: true }
+  );
+  return image;
+}
+
+/**
+ * Builds the dependency-free generic document artwork used by every file card.
+ */
+function buildFilePreviewArtwork(): HTMLElement {
+  const artwork = document.createElement("span");
+  artwork.className = "data-item__file-artwork";
+  artwork.setAttribute("aria-hidden", "true");
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 104 118");
+  svg.innerHTML = `
+    <path d="M19 19C19 12.3726 24.3726 7 31 7H68L89 28V99C89 105.627 83.6274 111 77 111H31C24.3726 111 19 105.627 19 99V19Z" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+    <path d="M68 7V28H89" class="data-item__file-fold" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M32 48H74M32 62H66M32 75H70M32 88H59" class="data-item__file-lines" stroke-width="5" stroke-linecap="round"/>
+  `;
+  artwork.appendChild(svg);
+  return artwork;
+}
+
+/**
+ * Builds the stable resource URL without coupling rendering to the fetch client.
+ */
+function buildResourcePath(item: DataItemCardViewModel): string {
+  return `/data/${encodeURIComponent(item.deviceId)}/${encodeURIComponent(item.dataId)}`;
+}
+
+/**
+ * Builds the content-first inline text presentation without a duplicate title or subtitle.
+ */
+function buildExpandableText(item: DataItemCardViewModel, translate: Translator): HTMLElement {
+  const container = document.createElement("div");
+  container.className = "data-item__inline-text";
+  container.dataset.expanded = "false";
+
+  const content = document.createElement("p");
+  content.className = "data-item__text-content";
+  content.dataset.role = "text-content";
+  content.tabIndex = -1;
+  content.textContent = item.preview;
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "data-item__text-toggle";
+  toggle.dataset.action = "toggle-text";
+  toggle.dataset.collapsedLabel = translate("text.showMore");
+  toggle.dataset.expandedLabel = translate("text.showLess");
+  toggle.textContent = translate("text.showMore");
+  toggle.hidden = true;
+
+  container.append(content, toggle);
+  return container;
+}
+
+/**
+ * Selects the actions that are valid for each resource type.
+ */
 function buildActionDefinitions(item: DataItemCardViewModel, translate: Translator): ActionDefinition[] {
   if (item.kind === "text") {
     return [
@@ -132,30 +238,7 @@ function buildActionDefinitions(item: DataItemCardViewModel, translate: Translat
   }
 
   const unavailable = !item.available;
-  if (item.kind === "image" || item.kind === "video") {
-    return [
-      {
-        name: "preview",
-        label: translate("action.preview"),
-        primary: true,
-        disabled: unavailable
-      },
-      {
-        name: "save",
-        label: translate("action.save"),
-        primary: false,
-        disabled: unavailable
-      }
-    ];
-  }
-
   return [
-    {
-      name: "open",
-      label: translate("action.open"),
-      primary: true,
-      disabled: unavailable
-    },
     {
       name: "save",
       label: translate("action.save"),
@@ -200,7 +283,7 @@ function buildIcon(kind: DataItemCardViewModel["kind"], size: "small" | "large" 
 
   if (kind === "text") {
     svg.innerHTML = `
-      <path d="M5 7h14M5 12h14M5 17h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <path d="M7.5 7h9M12 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
     `;
   } else if (kind === "image") {
     svg.innerHTML = `
@@ -257,21 +340,11 @@ function buildQuickShareBlock(translate: Translator): HTMLElement {
   submitButton.className = "button button--secondary";
   submitButton.textContent = translate("quick.send");
 
-  const pasteButton = document.createElement("button");
-  pasteButton.type = "button";
-  pasteButton.className = "button button--primary quick-share__paste-button";
-  pasteButton.dataset.action = "paste-clipboard";
-  pasteButton.append(buildActionIcon("paste"));
-  const pasteLabel = document.createElement("span");
-  pasteLabel.className = "button__label";
-  pasteLabel.textContent = translate("quick.paste");
-  pasteButton.appendChild(pasteLabel);
-
   const manualInput = document.createElement("div");
   manualInput.className = "quick-share__manual";
   manualInput.append(input, submitButton);
 
-  form.append(pasteButton, manualInput);
+  form.appendChild(manualInput);
 
   const actions = document.createElement("div");
   actions.className = "quick-share__actions";
@@ -354,9 +427,9 @@ function buildQuickShareIcon(kind: "text" | "image" | "album" | "file" | "video"
 }
 
 /**
- * Provides consistent iconography for card actions and the lightweight settings affordance.
+ * Provides consistent iconography for card and Quick Share actions.
  */
-function buildActionIcon(kind: "copy" | "preview" | "open" | "save" | "paste" | "settings" | "drop"): HTMLElement {
+function buildActionIcon(kind: "copy" | "open" | "save" | "drop"): HTMLElement {
   const wrapper = document.createElement("span");
   wrapper.className = `action-icon action-icon--${kind}`;
 
@@ -369,11 +442,6 @@ function buildActionIcon(kind: "copy" | "preview" | "open" | "save" | "paste" | 
       <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
       <rect x="5" y="5" width="10" height="10" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
     `;
-  } else if (kind === "preview") {
-    svg.innerHTML = `
-      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" stroke="currentColor" stroke-width="2" fill="none"/>
-      <circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
-    `;
   } else if (kind === "open") {
     svg.innerHTML = `
       <path d="M14 5h5v5M10 14l9-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
@@ -383,16 +451,6 @@ function buildActionIcon(kind: "copy" | "preview" | "open" | "save" | "paste" | 
     svg.innerHTML = `
       <path d="M12 4v10M8 10l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       <path d="M5 18h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    `;
-  } else if (kind === "paste") {
-    svg.innerHTML = `
-      <rect x="7" y="5" width="10" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-      <path d="M9 5.5h6M10 3h4a1 1 0 0 1 1 1v2H9V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
-    `;
-  } else if (kind === "settings") {
-    svg.innerHTML = `
-      <path d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="2" fill="none"/>
     `;
   } else {
     svg.innerHTML = `
@@ -405,12 +463,20 @@ function buildActionIcon(kind: "copy" | "preview" | "open" | "save" | "paste" | 
   return wrapper;
 }
 
+/**
+ * Creates the native file picker used by Quick Share buttons.
+ *
+ * The input is visually hidden instead of using `hidden`/`display: none` because
+ * some browsers block programmatic file chooser opening for fully hidden inputs.
+ */
 function buildPickerInput(picker: string, accept?: string): HTMLInputElement {
   const input = document.createElement("input");
-  input.hidden = true;
   input.type = "file";
+  input.className = "file-picker-input";
   input.dataset.role = "picker-input";
   input.dataset.picker = picker;
+  input.tabIndex = -1;
+  input.setAttribute("aria-hidden", "true");
   if (accept) {
     input.accept = accept;
   }
@@ -468,8 +534,28 @@ function buildSourceIcon(sourceName: string): HTMLElement {
 }
 
 type ActionDefinition = {
-  name: "copy" | "preview" | "open" | "save";
+  name: "copy" | "open" | "save";
   label: string;
   primary: boolean;
   disabled: boolean;
 };
+
+/**
+ * Shows expansion controls only when the collapsed text actually exceeds three rendered lines.
+ */
+function updateTextOverflowControls(rootElement: HTMLElement): void {
+  for (const container of rootElement.querySelectorAll<HTMLElement>(".data-item__inline-text")) {
+    const content = container.querySelector<HTMLElement>("[data-role='text-content']");
+    const toggle = container.querySelector<HTMLButtonElement>(".data-item__text-toggle");
+    if (!content || !toggle) {
+      continue;
+    }
+
+    if (container.dataset.expanded === "true") {
+      toggle.hidden = false;
+      continue;
+    }
+
+    toggle.hidden = content.scrollHeight <= content.clientHeight + 1;
+  }
+}

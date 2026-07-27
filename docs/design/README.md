@@ -30,3 +30,5 @@ This directory contains only the current UI design baseline. Each design is a st
 ## Workflow
 
 Update these designs and obtain confirmation before changing production UI code. After implementation, verify desktop, tablet, and mobile in a real browser and compare screenshots against this baseline.
+
+Runtime verification screenshots and node-level comparisons are stored separately in [`validation`](./validation/).

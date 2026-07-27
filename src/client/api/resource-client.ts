@@ -35,45 +35,21 @@ export async function saveResource(deviceId: string, dataId: string, fileName: s
  */
 export async function copyText(text: string): Promise<void> {
   const clipboard = navigator.clipboard;
-  if (clipboard && typeof clipboard.writeText === "function") {
-    try {
-      await clipboard.writeText(text);
-      return;
-    } catch {
-      // Permission denial in a non-secure context falls through to selection-based copying.
-    }
+  if (!globalThis.isSecureContext || !clipboard || typeof clipboard.writeText !== "function") {
+    throw new Error("clipboard write is unavailable");
   }
 
-  copyTextWithSelection(text);
+  await clipboard.writeText(text);
 }
 
 /**
- * Uses the browser's selection command as the HTTP-compatible clipboard fallback.
+ * Fetches the complete text payload for a non-inline shared resource.
  */
-function copyTextWithSelection(text: string): void {
-  const textArea = document.createElement("textarea");
-  textArea.value = text;
-  textArea.readOnly = true;
-  textArea.style.position = "fixed";
-  textArea.style.opacity = "0";
-  document.body.appendChild(textArea);
-  textArea.select();
-  const copied = document.execCommand("copy");
-  textArea.remove();
-  if (!copied) {
-    throw new Error("clipboard copy is unavailable");
-  }
-}
-
-/**
- * Fetches a text resource from the server and copies the full payload to the clipboard.
- */
-export async function copyResourceText(deviceId: string, dataId: string): Promise<void> {
+export async function readResourceText(deviceId: string, dataId: string): Promise<string> {
   const response = await fetch(buildResourceUrl(deviceId, dataId));
   if (!response.ok) {
     throw new Error(`resource read failed with status ${response.status}`);
   }
 
-  const value = await response.text();
-  await copyText(value);
+  return response.text();
 }

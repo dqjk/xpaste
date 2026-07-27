@@ -64,6 +64,10 @@ function buildItemPreview(item: SharedItemSummary): string {
     return item.summary.text;
   }
 
+  if (item.kind === "file") {
+    return "";
+  }
+
   if ("name" in item.summary) {
     return `${formatFileSize(item.size)} · ${formatItemType(item)}`;
   }

@@ -1,6 +1,6 @@
 {
-  "name": "xpaste",
-  "version": "0.1.0",
+  "name": "xpaste-server",
+  "version": "0.1.2",
   "description": "A lightweight browser-based service for sharing text, images, videos, and files across devices on the same network.",
   "type": "module",
   "bin": {
@@ -38,7 +38,7 @@
     "clean": "tsc -b --clean && node --eval \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsx watch src/server/app.ts",
     "start": "node dist/server/app.js",
-    "test": "npm run build && node --test tests/device-cookie.test.mjs tests/i18n.test.mjs tests/server.integration.test.mjs",
+    "test": "npm run build && node --test tests/device-cookie.test.mjs tests/i18n.test.mjs tests/view-model.test.mjs tests/server.integration.test.mjs",
     "prepack": "npm run clean && npm run build"
   },
   "dependencies": {

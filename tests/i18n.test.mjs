@@ -22,8 +22,10 @@ test("provides the expected interface messages for both locales", () => {
   const english = createTranslator("en");
   const simplifiedChinese = createTranslator("zh-CN");
 
-  assert.equal(english("quick.paste"), "Paste from Clipboard");
+  assert.equal(english("quick.inputPlaceholder"), "Enter text or paste anywhere...");
   assert.equal(english("status.unavailable"), "Unavailable");
-  assert.equal(simplifiedChinese("quick.paste"), "粘贴剪贴板内容");
+  assert.equal(english("feedback.clipboardWrite.title"), "Manual copy required");
+  assert.equal(simplifiedChinese("quick.inputPlaceholder"), "输入文本，或在页面任意位置粘贴...");
   assert.equal(simplifiedChinese("status.unavailable"), "不可用");
+  assert.equal(simplifiedChinese("feedback.upload.title"), "上传失败");
 });
