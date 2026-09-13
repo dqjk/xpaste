@@ -62,6 +62,14 @@
   box-sizing: border-box;
 }
 
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -78,7 +86,7 @@ input {
   width: min(100%, 1512px);
   margin: 0 auto;
   display: grid;
-  gap: 30px;
+  gap: 0;
   padding: 30px 52px 60px;
 }
 
@@ -104,6 +112,7 @@ input {
 .quick-share {
   display: grid;
   gap: 24px;
+  margin-top: 24px;
   padding: 24px;
   border-radius: var(--radius-panel);
 }
@@ -250,7 +259,8 @@ input {
 
 .items {
   display: grid;
-  gap: 28px;
+  gap: 27px;
+  margin-top: 40px;
 }
 
 .items__header h2 {
@@ -274,6 +284,7 @@ input {
   gap: 24px;
   min-width: 0;
   padding: 24px;
+  padding-inline: 23px;
   border-radius: var(--radius-card);
 }
 
@@ -301,16 +312,18 @@ input {
 
 .data-item__inline-text {
   display: grid;
-  gap: 26px;
+  position: relative;
+  gap: 0;
 }
 
 .data-item__inline-text .data-item__text-content {
   display: -webkit-box;
+  min-height: 66px;
   margin: 0;
   overflow: hidden;
   color: var(--text-main);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 22px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
@@ -322,7 +335,14 @@ input {
   overflow: visible;
 }
 
+.data-item__inline-text[data-expanded="true"] {
+  gap: 8px;
+}
+
 .data-item__text-toggle {
+  position: absolute;
+  top: 70px;
+  left: 0;
   justify-self: start;
   border: 0;
   padding: 0;
@@ -338,16 +358,20 @@ input {
   display: none;
 }
 
+.data-item__inline-text[data-expanded="true"] .data-item__text-toggle {
+  position: static;
+}
+
 .data-item--text {
   gap: 0;
-  padding-top: 17px;
-  padding-bottom: 18px;
+  padding-top: 21px;
+  padding-bottom: 17px;
 }
 
 .data-item--text .data-item__actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  margin-top: 7px;
+  margin-top: 30px;
 }
 
 .data-item--text .button--action {
@@ -356,8 +380,28 @@ input {
 }
 
 .data-item--text .data-item__footer {
-  margin-top: 15px;
-  padding-top: 12px;
+  margin-top: 14px;
+  padding-top: 13px;
+}
+
+.data-item--image,
+.data-item--video,
+.data-item--file {
+  min-height: 430px;
+  padding-bottom: 21px;
+}
+
+.data-item--image .data-item__footer,
+.data-item--video .data-item__footer,
+.data-item--file .data-item__footer {
+  padding-top: 13px;
+}
+
+.data-item--image .data-item__body,
+.data-item--video .data-item__body,
+.data-item--file .data-item__body {
+  display: grid;
+  gap: 25px;
 }
 
 .data-item__body h3 {
@@ -470,8 +514,8 @@ input {
 
 .data-item__preview--file {
   grid-template-columns: minmax(104px, 0.38fr) minmax(112px, 0.62fr);
-  min-height: 180px;
-  padding: 20px 28px;
+  min-height: 156px;
+  padding: 18px 28px;
   background:
     radial-gradient(circle at 15% 18%, rgba(227, 107, 44, 0.08), transparent 34%),
     linear-gradient(135deg, var(--panel-soft), color-mix(in srgb, var(--amber-soft) 58%, var(--panel-soft)));
@@ -609,6 +653,19 @@ input {
   white-space: nowrap;
 }
 
+.source-badge__details {
+  display: grid;
+  min-width: 0;
+}
+
+.source-badge__time {
+  color: var(--text-subtle);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  opacity: 0.72;
+}
+
 .data-item__footer-meta {
   display: inline-flex;
   align-items: center;
@@ -742,7 +799,8 @@ input {
 
   .item-grid {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 22px;
+    column-gap: 22px;
+    row-gap: 30px;
   }
 }
 
@@ -753,7 +811,7 @@ input {
 
   .page {
     width: min(100%, 375px);
-    gap: 24px;
+    gap: 0;
     padding: 24px 16px 48px;
     border-radius: var(--radius-page);
   }
@@ -768,7 +826,8 @@ input {
 
   .quick-share {
     gap: 12px;
-    padding: 18px;
+    margin-top: 18px;
+    padding: 83px 17px 17px;
   }
 
   .quick-share__form {
@@ -777,7 +836,7 @@ input {
   }
 
   .quick-share__manual {
-    grid-template-columns: minmax(0, 1fr) 56px;
+    grid-template-columns: minmax(0, 1fr) 50px;
     gap: 10px;
   }
 
@@ -823,7 +882,7 @@ input {
   }
 
   .items {
-    gap: 24px;
+    gap: 32px;
   }
 
   .items__header h2 {
@@ -838,6 +897,24 @@ input {
   .data-item {
     gap: 24px;
     padding: 24px;
+    padding-inline: 23px;
+  }
+
+  .data-item--image,
+  .data-item--video,
+  .data-item--file {
+    min-height: 404px;
+    padding-bottom: 23px;
+  }
+
+  .data-item--text {
+    gap: 0;
+    padding-top: 21px;
+    padding-bottom: 23px;
+  }
+
+  .data-item--text .data-item__footer {
+    margin-top: 20px;
   }
 
   .data-item__body h3 {
@@ -872,7 +949,7 @@ input {
 
   .data-item__preview--file {
     grid-template-columns: 68px minmax(112px, 1fr);
-    min-height: 152px;
+    min-height: 128px;
     padding: 18px 16px;
   }
 

@@ -9,6 +9,7 @@ export type DataItemCardViewModel = {
   available: boolean;
   mimeType: string;
   size: number;
+  timeLabel: string;
   title: string;
   preview: string;
   sourceName: string;
@@ -25,20 +26,24 @@ export type ApplicationViewModel = {
 export function buildApplicationViewModel(devices: DeviceListItem[]): ApplicationViewModel {
   const items = devices
     .flatMap((device) =>
-      device.data.map((item) => ({
-        deviceId: device.deviceId,
-        dataId: item.dataId,
-        kind: item.kind,
-        createdAt: item.createdAt,
-        inline: item.inline,
-        available: item.available,
-        mimeType: item.mimeType,
-        size: item.size,
-        title: buildItemTitle(item),
-        preview: buildItemPreview(item),
-        sourceName: device.displayName,
-        sourceIp: device.ip
-      }))
+      device.data.map((item) => {
+        const timeLabel = formatItemTime(item.createdAt);
+        return {
+          deviceId: device.deviceId,
+          dataId: item.dataId,
+          kind: item.kind,
+          createdAt: item.createdAt,
+          inline: item.inline,
+          available: item.available,
+          mimeType: item.mimeType,
+          size: item.size,
+          timeLabel,
+          title: buildItemTitle(item),
+          preview: buildItemPreview(item, timeLabel),
+          sourceName: device.displayName,
+          sourceIp: device.ip
+        };
+      })
     )
     .sort((left, right) => {
       if (left.available !== right.available) {
@@ -59,34 +64,12 @@ function buildItemTitle(item: SharedItemSummary): string {
   return item.name ?? `${item.kind.charAt(0).toUpperCase()}${item.kind.slice(1)}`;
 }
 
-function buildItemPreview(item: SharedItemSummary): string {
+function buildItemPreview(item: SharedItemSummary, timeLabel: string): string {
   if (item.kind === "text" && "text" in item.summary) {
     return item.summary.text;
   }
 
-  if (item.kind === "file") {
-    return "";
-  }
-
-  if ("name" in item.summary) {
-    return `${formatFileSize(item.size)} · ${formatItemType(item)}`;
-  }
-
-  return `${formatFileSize(item.size)} · ${formatItemType(item)}`;
-}
-
-function formatItemType(item: SharedItemSummary): string {
-  const fileName = item.name ?? ("name" in item.summary ? item.summary.name : "");
-  const extension = fileName.split(".").pop();
-  if (extension && extension !== fileName) {
-    return extension.toUpperCase();
-  }
-
-  if (item.mimeType.includes("/")) {
-    return item.mimeType.split("/").pop()?.toUpperCase() ?? item.kind.toUpperCase();
-  }
-
-  return item.kind.toUpperCase();
+  return `${formatFileSize(item.size)} · ${timeLabel}`;
 }
 
 function formatFileSize(size: number): string {
@@ -99,4 +82,14 @@ function formatFileSize(size: number): string {
   }
 
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * Formats an item's creation time in the browser's local timezone with second-level precision.
+ */
+function formatItemTime(createdAt: number): string {
+  const date = new Date(createdAt);
+  return [date.getHours(), date.getMinutes(), date.getSeconds()]
+    .map((part) => part.toString().padStart(2, "0"))
+    .join(":");
 }

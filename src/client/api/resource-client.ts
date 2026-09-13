@@ -15,19 +15,14 @@ export function openResourcePreview(deviceId: string, dataId: string): void {
 /**
  * Downloads a shared resource to the local device.
  */
-export async function saveResource(deviceId: string, dataId: string, fileName: string): Promise<void> {
-  const response = await fetch(buildResourceUrl(deviceId, dataId));
-  if (!response.ok) {
-    throw new Error(`resource download failed with status ${response.status}`);
-  }
-
-  const blob = await response.blob();
-  const objectUrl = URL.createObjectURL(blob);
+export function saveResource(deviceId: string, dataId: string, fileName: string): void {
   const link = document.createElement("a");
-  link.href = objectUrl;
+  link.href = buildResourceUrl(deviceId, dataId);
   link.download = fileName;
+  link.hidden = true;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(objectUrl);
+  link.remove();
 }
 
 /**

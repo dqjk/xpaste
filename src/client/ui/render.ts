@@ -91,11 +91,9 @@ function buildDataItemCard(item: DataItemCardViewModel, translate: Translator): 
     titleRow.append(title, buildAvailabilityBadge(item, translate));
 
     summaryText.appendChild(titleRow);
-    if (item.kind !== "file") {
-      const previewText = document.createElement("p");
-      previewText.textContent = item.preview;
-      summaryText.appendChild(previewText);
-    }
+    const previewText = document.createElement("p");
+    previewText.textContent = item.preview;
+    summaryText.appendChild(previewText);
   }
   summary.appendChild(summaryText);
   body.appendChild(summary);
@@ -486,10 +484,24 @@ function buildPickerInput(picker: string, accept?: string): HTMLInputElement {
 function buildSourceBadge(item: DataItemCardViewModel): HTMLElement {
   const badge = document.createElement("div");
   badge.className = "source-badge";
+
+  const details = document.createElement("span");
+  details.className = "source-badge__details";
+
   const title = document.createElement("span");
   title.className = "source-badge__title";
   title.textContent = `${item.sourceName} · ${item.sourceIp}`;
-  badge.append(buildSourceIcon(item.sourceName), title);
+  details.appendChild(title);
+
+  if (item.kind === "text") {
+    const time = document.createElement("time");
+    time.className = "source-badge__time";
+    time.dateTime = new Date(item.createdAt).toISOString();
+    time.textContent = item.timeLabel;
+    details.appendChild(time);
+  }
+
+  badge.append(buildSourceIcon(item.sourceName), details);
   return badge;
 }
 

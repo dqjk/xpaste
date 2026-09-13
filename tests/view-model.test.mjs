@@ -11,13 +11,14 @@ function buildDevice(data) {
   };
 }
 
-test("uses size and format without repeating rich-media file names", () => {
+test("uses size and local creation time without repeating rich-media file names or extensions", () => {
+  const createdAt = new Date(2026, 8, 13, 14, 31, 54).getTime();
   const viewModel = buildApplicationViewModel([
     buildDevice([
       {
         dataId: "image-1",
         kind: "image",
-        createdAt: 1,
+        createdAt,
         inline: false,
         available: true,
         mimeType: "image/png",
@@ -29,17 +30,20 @@ test("uses size and format without repeating rich-media file names", () => {
   ]);
 
   assert.equal(viewModel.items[0].title, "Lake Photo.png");
-  assert.equal(viewModel.items[0].preview, "1.5 KB · PNG");
+  assert.equal(viewModel.items[0].preview, "1.5 KB · 14:31:54");
+  assert.equal(viewModel.items[0].timeLabel, "14:31:54");
   assert.doesNotMatch(viewModel.items[0].preview, /Lake Photo/);
+  assert.doesNotMatch(viewModel.items[0].preview, /PNG/);
 });
 
-test("keeps file metadata out of the card presentation contract", () => {
+test("uses the same size and creation time metadata for generic files", () => {
+  const createdAt = new Date(2026, 8, 13, 14, 30, 21).getTime();
   const viewModel = buildApplicationViewModel([
     buildDevice([
       {
         dataId: "file-1",
         kind: "file",
-        createdAt: 1,
+        createdAt,
         inline: false,
         available: true,
         mimeType: "application/pdf",
@@ -51,5 +55,6 @@ test("keeps file metadata out of the card presentation contract", () => {
   ]);
 
   assert.equal(viewModel.items[0].title, "Project Plan.pdf");
-  assert.equal(viewModel.items[0].preview, "");
+  assert.equal(viewModel.items[0].preview, "13 B · 14:30:21");
+  assert.equal(viewModel.items[0].timeLabel, "14:30:21");
 });

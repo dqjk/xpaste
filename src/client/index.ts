@@ -3,6 +3,7 @@ import { postFileData, postTextData } from "./api/http-client.js";
 import { copyText, openResourcePreview, readResourceText, saveResource } from "./api/resource-client.js";
 import { ensureDeviceIdCookie } from "./app/device-cookie.js";
 import { connectEventStream } from "./app/event-source.js";
+import { isEditablePasteTarget } from "./app/paste-target.js";
 import { createTranslator, getBrowserLocale } from "./i18n/locale.js";
 import { ApplicationStore } from "./state/store.js";
 import { buildApplicationViewModel, type DataItemCardViewModel } from "./state/view-model.js";
@@ -169,17 +170,16 @@ function bindApplicationActions(rootElement: HTMLElement): void {
  */
 function bindWindowPasteUpload(rootElement: HTMLElement): void {
   window.addEventListener("paste", (event) => {
+    if (isEditablePasteTarget(event.target)) {
+      return;
+    }
+
     const payload = readPastePayload(event);
     if (!payload) {
       return;
     }
 
     event.preventDefault();
-    const target = event.target;
-    if (target instanceof HTMLInputElement && target.dataset.role === "text-input") {
-      target.value = "";
-    }
-
     void runUserInteraction("upload", async () => {
       for (const file of payload.files) {
         await postFileData(file);
